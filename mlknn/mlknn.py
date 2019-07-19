@@ -15,6 +15,7 @@ multi-label learning. Pattern recognition, 40(7), 2038-2048.
 
 """
 import numpy as np
+import numpy.matlib
 from sklearn.neighbors import NearestNeighbors
 #from ..exceptions import NotFittedError
 
@@ -69,32 +70,32 @@ class MLKNN:
 #        self.neighbors = np.delete(neighbors,0,axis=1)
             
             
-        self.mooth = 1.0
-        num_training,num_class = Y.shape
+#        self.smooth = 1.0
+        nb_train,nb_label = Y.shape
 
-        #Computing Prior and PriorN
-        temp_Ci = (Y==1).sum(0)
-        self.Prior = (self.smooth+temp_Ci) / (self.smooth*2 + num_training)
-        self.PriorN = 1.0-self.Prior
+        #Computing prior and priorn
+        temp_c = (Y==1).sum(0)
+        self.prior = (self.smooth+temp_c) / (self.smooth*2 + nb_train)
+        self.priorn = 1.0-self.prior
     
-        temp_Ci = np.zeros([num+1,num_class])
-        temp_NCi = np.zeros([num+1,num_class])
+        temp_c = np.zeros([num+1,nb_label])
+        temp_nc = np.zeros([num+1,nb_label])
         
-        for i in range(num_training):
+        for i in range(nb_train):
             neighbor_labels = np.zeros([num,Y.shape[1]])
             for j in range(num):
                 neighbor_labels[j,:] = Y[self.neighbors[i][j],:]
             temp = (neighbor_labels == 1).sum(0)
-            for j in range(num_class):
+            for j in range(nb_label):
                 if Y[i,j]==1:
-                    temp_Ci[temp[j],j] = temp_Ci[temp[j],j] + 1
+                    temp_c[temp[j],j] = temp_c[temp[j],j] + 1
                 else:
-                    temp_NCi[temp[j],j] = temp_NCi[temp[j],j] + 1
+                    temp_nc[temp[j],j] = temp_nc[temp[j],j] + 1
         
-        temp1 = temp_Ci.sum(0)
-        temp2 = temp_NCi.sum(0)
-        self.Cond=(self.smooth+temp_Ci) /(self.smooth*(num+1) + np.matlib.repmat(temp1,num+1,1))
-        self.CondN=(self.smooth+temp_NCi) /(self.smooth*(num+1) + np.matlib.repmat(temp2,num+1,1))
+        temp1 = temp_c.sum(0)
+        temp2 = temp_nc.sum(0)
+        self.cond=(self.smooth+temp_c) /(self.smooth*(num+1) + np.matlib.repmat(temp1,num+1,1))
+        self.condn=(self.smooth+temp_nc) /(self.smooth*(num+1) + np.matlib.repmat(temp2,num+1,1))
         
         return self
         
@@ -122,13 +123,13 @@ class MLKNN:
         
         Returns
         -------
-        Pre_Labels : The predicted labels (after threshold application)
-        Outputs : The output probabilites
+        preds : The predicted labels (after threshold application)
+        prob_outputs : The output probabilites
         """   
 
 
         try:
-            self.CondN
+            self.condn
         except:
             raise NameError("Estimator not fitted.")
 
@@ -139,28 +140,28 @@ class MLKNN:
         else:
             self.neighbors_test = neighbors
             
-        num_training,num_class = Y.shape
-        num_testing = Xt.shape[0]
+        nb_train,nb_labels = Y.shape
+        nb_test = Xt.shape[0]
         
         
-        Outputs = np.zeros([num_testing,num_class]) 
-        for i in range(num_testing):
+        prob_outputs = np.zeros([nb_test,nb_labels]) 
+        for i in range(nb_test):
             neighbor_labels = np.zeros([num,Y.shape[1]])
             for j in range(num):
                 neighbor_labels[j,:] = Y[self.neighbors_test[i][j],:]
             temp = (neighbor_labels == 1).sum(0)
-            for j in range(num_class):
-                Prob_in = self.Prior[j]*self.Cond[temp[j],j]
-                Prob_out = self.PriorN[j]*self.CondN[temp[j],j]
-                if (Prob_in + Prob_out==0):
-                    Outputs[i,j] = self.Prior[j]
+            for j in range(nb_labels):
+                p1 = self.prior[j]*self.cond[temp[j],j]
+                p2 = self.priorn[j]*self.condn[temp[j],j]
+                if (p1 + p2==0):
+                    prob_outputs[i,j] = self.prior[j]
                 else:
-                    Outputs[i,j] = Prob_in / (Prob_in + Prob_out)      
-        Pre_Labels = np.zeros([num_testing,num_class])
-        Pre_Labels[Outputs >= self.threshold] = 1
-        Pre_Labels[Outputs < self.threshold] = 0
+                    prob_outputs[i,j] = p1 / (p1 + p2)      
+        preds = np.zeros([nb_test,nb_labels])
+        preds[prob_outputs >= self.threshold] = 1
+        preds[prob_outputs < self.threshold] = 0
         
-        return Pre_Labels,Outputs
+        return preds,prob_outputs
     
     
     

@@ -33,7 +33,7 @@ Ytest = Y[test]
 # Call class mlknn
 ml = MLKNN()
 ml.fit(Xtrain, Ytrain, 5)
-Pre_Labels,Outputs = ml.predict(Xtest,Ytrain,5)
+preds,prob_output2 = ml.predict(Xtest,Ytrain,5)
 
 
 
@@ -47,7 +47,7 @@ Neighbors_test = neigh.kneighbors(Xtest, 5, return_distance=False)
 
 ml2 = MLKNN()
 ml2.fit(Xtrain, Ytrain, 5, neighbors = Neighbors)
-Pre_Labels2,Outputs2 = ml2.predict(Xtest,Ytrain,5,neighbors = Neighbors_test)
+preds2,prob_outputs2 = ml2.predict(Xtest,Ytrain,5,neighbors = Neighbors_test)
 
 
 
@@ -59,7 +59,7 @@ Xtestd = euclidean_distances(Xtest,Xtrain)
 
 ml3 = MLKNN()
 ml3.fit(Xtraind, Ytrain, 5, distance_matrix = True)
-Pre_Labels3,Outputs3 = ml3.predict(Xtestd,Ytrain,5,distance_matrix_t = True)
+preds3,prob_outputs3 = ml3.predict(Xtestd,Ytrain,5,distance_matrix_t = True)
 
 
 
