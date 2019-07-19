@@ -4,7 +4,6 @@ Created on Tue Mar 26 14:02:00 2019
 
 @author: Konstantinos Pliakos
 
-License: BSD 3 clause
 
 Implementation of the MLkNN algorithm [1].
 

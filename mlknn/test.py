@@ -28,8 +28,6 @@ Ytrain = Y[train]
 Ytest = Y[test]
 
 
-
-
 # Call class mlknn
 ml = MLKNN()
 ml.fit(Xtrain, Ytrain, 5)
